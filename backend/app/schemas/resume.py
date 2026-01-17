@@ -7,8 +7,6 @@ class ExtractedField(BaseModel):
     """A single extracted field with confidence score"""
     value: Any
     confidence: int  # 0-100
-    source: str
-    needs_review: bool
 
 
 class ParsedResume(BaseModel):
@@ -17,12 +15,11 @@ class ParsedResume(BaseModel):
     full_name: ExtractedField
     email: ExtractedField
     phone: ExtractedField
-    location: ExtractedField
-    current_role: ExtractedField
     years_of_experience: ExtractedField
     skills: List[ExtractedField]
     education: List[Dict]
     work_experience: List[Dict]
+    projects: List[Dict] = []
     
     # New manual/inferred fields
     preferred_locations: List[str] = []
@@ -44,8 +41,6 @@ class CandidateProfile(BaseModel):
     full_name: str
     email: str
     phone: Optional[str] = None
-    location: Optional[str] = None
-    current_role: Optional[str] = None
     years_of_experience: Optional[float] = 0
     skills: List[str] = []
     confidence_scores: dict = {}

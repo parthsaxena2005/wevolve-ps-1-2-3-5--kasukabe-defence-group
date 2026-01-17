@@ -53,12 +53,11 @@ async def parse_resume(file: UploadFile = File(...), db: Session = Depends(get_d
         'full_name': parser.extract_name(text),
         'email': parser.extract_email(text),
         'phone': parser.extract_phone(text),
-        'location': parser.extract_location(text),
-        'current_role': ExtractedField(value="", confidence=0, source="Not implemented", needs_review=True),
         'years_of_experience': parser.extract_experience_years(text),
         'skills': parser.extract_skills(text),
         'education': parser.extract_education(text),
-        'work_experience': [],
+        'work_experience': parser.extract_work_experience(text),
+        'projects': parser.extract_projects(text),
     }
     
     # Initialize preference fields (can be updated manually later)
@@ -70,28 +69,52 @@ async def parse_resume(file: UploadFile = File(...), db: Session = Depends(get_d
     
     overall_confidence = parser.calculate_overall_confidence(parsed)
     
+    # --- SANITIZE DATA BEFORE SAVING ---
+    def sanitize_for_json(data):
+        """Recursively replace None values with empty strings for JSON serialization."""
+        if isinstance(data, dict):
+            return {k: sanitize_for_json(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [sanitize_for_json(item) for item in data]
+        elif data is None:
+            return ""
+        return data
+    
+    sanitized_education = sanitize_for_json(parsed['education'])
+    sanitized_work_experience = sanitize_for_json(parsed['work_experience'])
+    sanitized_projects = sanitize_for_json(parsed['projects'])
+    
+    # Update parsed with sanitized projects
+    parsed['projects'] = sanitized_projects
+    
     # --- SAVE TO DB IMMEDIATELY ---
-    candidate = Candidate(
-        full_name=parsed['full_name'].value,
-        email=parsed['email'].value,
-        phone=parsed['phone'].value,
-        location=parsed['location'].value,
-        current_role=parsed['current_role'].value,
-        years_of_experience=parsed['years_of_experience'].value,
-        raw_resume_text=text,
-        education=parsed['education'],
-        confidence_scores={
-            'full_name': parsed['full_name'].confidence,
-            'email': parsed['email'].confidence,
-            'overall': overall_confidence
-        },
-        # Initialize preferences as empty
-        preferred_locations=[],
-        preferred_roles=[]
-    )
-    db.add(candidate)
-    db.commit()
-    db.refresh(candidate)
+    try:
+        candidate = Candidate(
+            full_name=parsed['full_name'].value or "",
+            email=parsed['email'].value or "",
+            phone=parsed['phone'].value or "",
+            years_of_experience=parsed['years_of_experience'].value or 0,
+            raw_resume_text=text,
+            education=sanitized_education,
+            work_experience=sanitized_work_experience,
+            confidence_scores={
+                'full_name': parsed['full_name'].confidence,
+                'email': parsed['email'].confidence,
+                'overall': overall_confidence
+            },
+            # Initialize preferences as empty
+            preferred_locations=[],
+            preferred_roles=[]
+        )
+        db.add(candidate)
+        db.commit()
+        db.refresh(candidate)
+    except Exception as db_error:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while saving candidate: {str(db_error)}"
+        )
     
    
     response = ParsedResume(
@@ -126,8 +149,6 @@ async def save_parsed_profile(
     candidate.full_name = profile.full_name.value
     candidate.email = profile.email.value
     candidate.phone = profile.phone.value
-    candidate.location = profile.location.value
-    candidate.current_role = profile.current_role.value
     candidate.years_of_experience = profile.years_of_experience.value
     
     # Update Education

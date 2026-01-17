@@ -39,7 +39,7 @@ class RoadmapRequest(BaseModel):
     current_skills: List[str]
     target_job_id: int
     learning_pace: str = "moderate"  # "intensive", "moderate", "relaxed"
-
+# check how learning pace will be decided
 
 class RoadmapResponse(BaseModel):
     """Complete learning roadmap"""
