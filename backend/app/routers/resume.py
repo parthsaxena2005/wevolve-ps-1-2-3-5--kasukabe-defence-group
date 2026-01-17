@@ -97,6 +97,7 @@ async def parse_resume(file: UploadFile = File(...), db: Session = Depends(get_d
             raw_resume_text=text,
             education=sanitized_education,
             work_experience=sanitized_work_experience,
+            projects=sanitized_projects,
             confidence_scores={
                 'full_name': parsed['full_name'].confidence,
                 'email': parsed['email'].confidence,
@@ -137,29 +138,56 @@ async def save_parsed_profile(
     """
     Update a parsed profile with user corrections.
     """
-    candidate = db.query(Candidate).filter(Candidate.id == candidate_id).first()
-    
-    if not candidate:
+    """
+    Update a parsed profile with user corrections.
+    """
+    try:
+        candidate = db.query(Candidate).filter(Candidate.id == candidate_id).first()
+        
+        if not candidate:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Candidate with ID {candidate_id} not found"
+            )
+        
+        # Update fields with potentially corrected values
+        # Add basic null safety
+        candidate.full_name = profile.full_name.value or ""
+        candidate.email = profile.email.value or ""
+        candidate.phone = profile.phone.value or ""
+        
+        try:
+            candidate.years_of_experience = float(profile.years_of_experience.value)
+        except (ValueError, TypeError):
+             candidate.years_of_experience = 0.0
+        
+        # Update Education - Convert models to dicts
+        candidate.education = [e.model_dump() for e in profile.education] if profile.education else []
+        
+        # Update Manual Preferences
+        candidate.preferred_locations = profile.preferred_locations or []
+        candidate.preferred_roles = profile.preferred_roles or []
+        candidate.expected_salary_min = profile.expected_salary
+        
+        # We should also update work_experience if it's in the profile
+        if profile.work_experience:
+             candidate.work_experience = [w.model_dump() for w in profile.work_experience]
+             
+        # Update Projects
+        if hasattr(profile, 'projects') and profile.projects:
+            candidate.projects = [p.model_dump() for p in profile.projects]
+        
+        db.commit()
+        db.refresh(candidate)
+        
+        return {"message": "Profile updated successfully", "candidate_id": candidate.id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        db.rollback()
         raise HTTPException(
-            status_code=404, 
-            detail=f"Candidate with ID {candidate_id} not found"
+            status_code=500,
+            detail=f"Error saving profile: {str(e)}"
         )
-    
-    # Update fields with potentially corrected values
-    candidate.full_name = profile.full_name.value
-    candidate.email = profile.email.value
-    candidate.phone = profile.phone.value
-    candidate.years_of_experience = profile.years_of_experience.value
-    
-    # Update Education
-    candidate.education = profile.education
-    
-    # Update Manual Preferences
-    candidate.preferred_locations = profile.preferred_locations
-    candidate.preferred_roles = profile.preferred_roles
-    candidate.expected_salary_min = profile.expected_salary  # Storing single value as min
-    
-    db.commit()
-    db.refresh(candidate)
-    
-    return {"message": "Profile updated successfully", "candidate_id": candidate.id}

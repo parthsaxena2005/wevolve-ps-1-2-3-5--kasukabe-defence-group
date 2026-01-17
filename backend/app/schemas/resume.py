@@ -9,6 +9,27 @@ class ExtractedField(BaseModel):
     confidence: int  # 0-100
 
 
+
+class EducationEntry(BaseModel):
+    degree: Optional[str] = None
+    field: Optional[str] = None
+    institute: Optional[str] = None
+    year: Optional[str] = None
+    cgpa: Optional[float] = None
+    confidence: int = 0
+
+class WorkExperienceEntry(BaseModel):
+    title: str
+    company: str
+    duration: str
+    description: List[str] = []
+
+class ProjectEntry(BaseModel):
+    title: str
+    tech_stack: List[str] = []
+    description: List[str] = []
+    confidence: int = 0
+
 class ParsedResume(BaseModel):
     """Complete parsed resume with all fields"""
     id: Optional[int] = None
@@ -17,9 +38,9 @@ class ParsedResume(BaseModel):
     phone: ExtractedField
     years_of_experience: ExtractedField
     skills: List[ExtractedField]
-    education: List[Dict]
-    work_experience: List[Dict]
-    projects: List[Dict] = []
+    education: List[EducationEntry]
+    work_experience: List[WorkExperienceEntry]
+    projects: List[ProjectEntry] = []
     
     # New manual/inferred fields
     preferred_locations: List[str] = []

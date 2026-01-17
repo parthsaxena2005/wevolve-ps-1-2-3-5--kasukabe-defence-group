@@ -68,6 +68,7 @@ class Candidate(Base):
     # Parsed Content (JSON)
     education = Column(JSON, default=[])
     work_experience = Column(JSON, default=[])
+    projects = Column(JSON, default=[])
     certifications = Column(JSON, default=[])
     confidence_scores = Column(JSON, default={})
     
