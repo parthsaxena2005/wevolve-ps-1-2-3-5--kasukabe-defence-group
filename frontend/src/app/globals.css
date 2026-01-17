@@ -1,6 +1,8 @@
-/* Wevolve Global Styles */
+@import "tailwindcss";
+
+/* Wevolve Brand Colors */
 :root {
-  /* Brand Colors */
+  /* Primary Colors */
   --wevolve-primary: #6366f1;
   --wevolve-primary-light: #818cf8;
   --wevolve-primary-dark: #4f46e5;
@@ -8,7 +10,8 @@
   --wevolve-accent: #22d3ee;
   
   /* Background */
-  --bg-dark: #0f0f1a;
+  --background: #0f0f1a;
+  --foreground: #f8fafc;
   --bg-card: #1a1a2e;
   --bg-elevated: #252542;
   
@@ -16,19 +19,23 @@
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
   
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #f472b6 100%);
-  --gradient-glow: linear-gradient(45deg, rgba(99, 102, 241, 0.5) 0%, rgba(244, 114, 182, 0.5) 100%);
-  
-  /* Shadows */
-  --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
-  --transition-slow: 500ms ease;
+  /* Custom colors for Tailwind */
+  --color-wevolve-primary: var(--wevolve-primary);
+  --color-wevolve-primary-light: var(--wevolve-primary-light);
+  --color-wevolve-primary-dark: var(--wevolve-primary-dark);
+  --color-wevolve-secondary: var(--wevolve-secondary);
+  --color-wevolve-accent: var(--wevolve-accent);
+  --color-bg-card: var(--bg-card);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 }
 
 * {
@@ -42,9 +49,9 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: var(--bg-dark);
-  color: var(--text-primary);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: var(--background);
+  color: var(--foreground);
   line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
@@ -72,7 +79,7 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -94,40 +101,6 @@ body::before {
 *:focus-visible {
   outline: 2px solid var(--wevolve-primary);
   outline-offset: 2px;
-}
-
-/* Utility Classes */
-.gradient-text {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.glass-card {
-  background: rgba(26, 26, 46, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-}
-
-.glow-border {
-  position: relative;
-}
-
-.glow-border::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: var(--gradient-primary);
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-  z-index: -1;
-}
-
-.glow-border:hover::before {
-  opacity: 1;
 }
 
 /* Animation Keyframes */
@@ -153,4 +126,24 @@ body::before {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Utility Classes */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #f472b6 50%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-card {
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
