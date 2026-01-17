@@ -1,19 +1,22 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Sparkles, Sun, Moon, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useTheme } from '@/contexts/ThemeContext';
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import { Sparkles, Sun, Moon, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface HeaderProps {
   showMobileMenu?: boolean;
   onToggleMobileMenu?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) => {
+const Header: React.FC<HeaderProps> = ({
+  showMobileMenu,
+  onToggleMobileMenu,
+}) => {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = React.useState(false);
@@ -23,10 +26,10 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
   }, []);
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/upload', label: 'Upload Resume' },
-    { path: '/gap-analysis', label: 'Gap Analysis' },
-    { path: '/jobs', label: 'Find Jobs' }
+    { path: "/", label: "Home" },
+    { path: "/upload", label: "Upload Resume" },
+    { path: "/gap-analysis", label: "Gap Analysis" },
+    { path: "/jobs", label: "Find Jobs" },
   ];
 
   const isActive = (path: string) => pathname === path;
@@ -35,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border"
     >
       <div className="container mx-auto px-4 py-4">
@@ -62,15 +65,20 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
                 href={link.path}
                 className="relative px-4 py-2"
               >
-                <span className={`text-sm font-medium transition-colors ${isActive(link.path) ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                  }`}>
+                <span
+                  className={`text-sm font-medium transition-colors ${
+                    isActive(link.path)
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   {link.label}
                 </span>
                 {isActive(link.path) && (
                   <motion.div
                     layoutId="activeNav"
                     className="absolute inset-0 bg-primary/10 rounded-lg -z-10"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
               </Link>
@@ -78,7 +86,14 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
           </nav>
 
           {/* Theme Toggle & Mobile Menu */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-8">
+            <Button
+              variant="default"
+              size="sm"
+              className="hidden md:flex font-semibold px-6"
+            >
+              Sign Up
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -92,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {theme === 'light' ? (
+                  {theme === "light" ? (
                     <Moon className="w-5 h-5" />
                   ) : (
                     <Sun className="w-5 h-5" />
@@ -109,7 +124,11 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
               className="md:hidden rounded-full"
               onClick={onToggleMobileMenu}
             >
-              {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {showMobileMenu ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -118,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
         {showMobileMenu && (
           <motion.nav
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden mt-4 pb-4 border-t border-border pt-4"
           >
@@ -128,10 +147,11 @@ const Header: React.FC<HeaderProps> = ({ showMobileMenu, onToggleMobileMenu }) =
                   key={link.path}
                   href={link.path}
                   onClick={onToggleMobileMenu}
-                  className={`px-4 py-3 rounded-lg transition-colors ${isActive(link.path)
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`}
+                  className={`px-4 py-3 rounded-lg transition-colors ${
+                    isActive(link.path)
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
                   {link.label}
                 </Link>

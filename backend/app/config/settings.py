@@ -20,6 +20,7 @@ class Settings:
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",  # Vite default
         "http://localhost:3000",  # CRA default
+        "http://localhost:3001",  # Next.js on port 3001
     ]
     
     # Matching Engine Weights

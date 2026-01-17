@@ -24,7 +24,13 @@ async def calculate_matches(request: MatchRequest, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="No job postings found in the database.")
     
     candidate_data = request.dict()
-    field = candidate_data.get('education', {}).get('field', 'Unknown')
+    education_data = candidate_data.get('education') or {}
+    # Handle list of education entries vs single dict if necessary, but here we just want a field for logging
+    field = "Unknown"
+    if isinstance(education_data, list) and education_data:
+        field = education_data[0].get('field', 'Unknown')
+    elif isinstance(education_data, dict):
+        field = education_data.get('field', 'Unknown')
     
     # Visual console output
     print(f"\n--- API Match Results for {field} Candidate ---")
@@ -56,20 +62,28 @@ async def calculate_matches(request: MatchRequest, db: Session = Depends(get_db)
         # 2. Location Match
         location_score = engine.calculate_location_score(
             candidate_data.get('preferred_locations', []),
-            job_data.get('location', '')
+            job_data.get('location', '') or ''
         )
         
         # 3. Salary Match
+        # Handle salary extraction from dict safely
+        exp_salary_data = candidate_data.get('expected_salary')
+        exp_salary_val = 0
+        if isinstance(exp_salary_data, dict):
+            exp_salary_val = exp_salary_data.get('min', 0)
+        elif isinstance(exp_salary_data, (int, float)):
+            exp_salary_val = exp_salary_data
+            
         salary_score = engine.calculate_salary_score(
-            candidate_data.get('expected_salary', 0),
-            job_data.get('salary_min', 0),
-            job_data.get('salary_max', 0)
+            exp_salary_val,
+            job_data.get('salary_min') or 0,
+            job_data.get('salary_max') or 0
         )
         
         # 4. Experience Match
         experience_score = engine.calculate_experience_score(
-            candidate_data.get('experience_years', 0),
-            job_data.get('min_experience_years', 0)
+            candidate_data.get('experience_years') or 0,
+            job_data.get('min_experience_years') or 0
         )
         
         # 5. Role Match

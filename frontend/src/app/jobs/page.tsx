@@ -1,22 +1,37 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, LayoutGrid, List, SlidersHorizontal, X, Briefcase, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import Layout from '@/components/layout/Layout';
-import JobCard from '@/components/jobs/JobCard';
-import JobFilters, { FilterState } from '@/components/jobs/JobFilters';
-import { mockJobs, Job } from '@/data/mockData';
-import { getJobs, calculateMatches, APIError } from '@/services/api';
-import { JobAPI } from '@/types/api';
-import { useResume } from '@/contexts/ResumeContext';
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Filter,
+  LayoutGrid,
+  List,
+  SlidersHorizontal,
+  X,
+  Briefcase,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Layout from "@/components/layout/Layout";
+import JobCard from "@/components/jobs/JobCard";
+import JobFilters, { FilterState } from "@/components/jobs/JobFilters";
+import { mockJobs, Job } from "@/data/mockData";
+import { getJobs, calculateMatches, APIError } from "@/services/api";
+import { JobAPI } from "@/types/api";
+import { useResume } from "@/contexts/ResumeContext";
 
 // Transform API job to frontend Job format
-function transformApiJobToFrontend(apiJob: JobAPI, matchScore: number = 70): Job {
+function transformApiJobToFrontend(apiJob: JobAPI, matchResult?: any): Job {
   return {
     id: String(apiJob.id),
     title: apiJob.title,
@@ -27,19 +42,23 @@ function transformApiJobToFrontend(apiJob: JobAPI, matchScore: number = 70): Job
       max: apiJob.salary_max,
     },
     skills: [...apiJob.required_skills, ...apiJob.nice_to_have_skills],
-    type: apiJob.is_remote ? 'Remote' : 'Full-time',
+    type: apiJob.is_remote ? "Remote" : "Full-time",
     experience: apiJob.min_experience_years,
     description: apiJob.description,
-    matchScore: matchScore,
+    matchScore: matchResult?.match_score || 70,
     postedDate: new Date(),
+    missingSkills: matchResult?.missing_skills,
+    explanation: matchResult?.explanation,
+    topReason: matchResult?.top_reason_for_match,
+    topImprovement: matchResult?.top_area_to_improve,
   };
 }
 
 export default function JobsPage() {
   const { parsedResume } = useResume();
-  const [search, setSearch] = useState('');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState('match');
+  const [search, setSearch] = useState("");
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState("match");
   const [showFilters, setShowFilters] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +69,7 @@ export default function JobsPage() {
     salary: [0, 300000],
     skills: [],
     jobTypes: [],
-    postedDate: 'all'
+    postedDate: "all",
   });
 
   // Fetch jobs from API on mount
@@ -64,30 +83,37 @@ export default function JobsPage() {
         const response = await getJobs();
 
         // Get candidate skills for matching
-        const candidateSkills = parsedResume?.skills.map(s => s.name) || [];
+        const candidateSkills = parsedResume?.skills.map((s) => s.name) || [];
 
         // If we have candidate skills, calculate match scores
         let jobsWithScores: Job[] = [];
 
         if (candidateSkills.length > 0 && response.jobs.length > 0) {
           try {
-            const matchResults = await calculateMatches({
-              candidate_skills: candidateSkills,
-              candidate_experience_years: parsedResume?.yearsOfExperience,
+            const matchResponse = await calculateMatches({
+              full_name: parsedResume?.name || "Candidate",
+              skills: candidateSkills,
+              experience_years: parsedResume?.yearsOfExperience || 0,
             });
 
             // Map match results to jobs
-            jobsWithScores = response.jobs.map(apiJob => {
-              const matchResult = matchResults.find(m => m.job_id === apiJob.id);
-              return transformApiJobToFrontend(apiJob, matchResult?.total_score || 60);
+            jobsWithScores = response.jobs.map((apiJob) => {
+              const matchResult = matchResponse.matches.find(
+                (m: any) => m.job_id === apiJob.id
+              );
+              return transformApiJobToFrontend(apiJob, matchResult);
             });
           } catch {
             // If matching fails, just use default scores
-            jobsWithScores = response.jobs.map(apiJob => transformApiJobToFrontend(apiJob, 70));
+            jobsWithScores = response.jobs.map((apiJob) =>
+              transformApiJobToFrontend(apiJob, 70)
+            );
           }
         } else {
           // No resume parsed, use default scores
-          jobsWithScores = response.jobs.map(apiJob => transformApiJobToFrontend(apiJob, 70));
+          jobsWithScores = response.jobs.map((apiJob) =>
+            transformApiJobToFrontend(apiJob, 70)
+          );
         }
 
         // If API returned no jobs, fall back to mock data
@@ -97,7 +123,7 @@ export default function JobsPage() {
           setJobs(jobsWithScores);
         }
       } catch (err) {
-        console.error('Failed to fetch jobs:', err);
+        console.error("Failed to fetch jobs:", err);
         // Fall back to mock data on error
         setJobs(mockJobs);
         if (err instanceof APIError) {
@@ -118,53 +144,57 @@ export default function JobsPage() {
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(
-        job =>
+        (job) =>
           job.title.toLowerCase().includes(searchLower) ||
           job.company.toLowerCase().includes(searchLower) ||
           job.description.toLowerCase().includes(searchLower) ||
-          job.skills.some(s => s.toLowerCase().includes(searchLower))
+          job.skills.some((s) => s.toLowerCase().includes(searchLower))
       );
     }
 
     // Location filter
     if (filters.locations.length > 0) {
-      result = result.filter(job => filters.locations.includes(job.location));
+      result = result.filter((job) => filters.locations.includes(job.location));
     }
 
     // Experience filter
     result = result.filter(
-      job => job.experience >= filters.experience[0] && job.experience <= filters.experience[1]
+      (job) =>
+        job.experience >= filters.experience[0] &&
+        job.experience <= filters.experience[1]
     );
 
     // Salary filter (convert to same unit - assuming backend uses INR)
     result = result.filter(
-      job => job.salary.min >= filters.salary[0] && job.salary.max <= filters.salary[1] * 100
+      (job) =>
+        job.salary.min >= filters.salary[0] &&
+        job.salary.max <= filters.salary[1] * 100
     );
 
     // Skills filter
     if (filters.skills.length > 0) {
-      result = result.filter(job =>
-        filters.skills.some(skill => job.skills.includes(skill))
+      result = result.filter((job) =>
+        filters.skills.some((skill) => job.skills.includes(skill))
       );
     }
 
     // Job type filter
     if (filters.jobTypes.length > 0) {
-      result = result.filter(job => filters.jobTypes.includes(job.type));
+      result = result.filter((job) => filters.jobTypes.includes(job.type));
     }
 
     // Sort
     switch (sortBy) {
-      case 'match':
+      case "match":
         result.sort((a, b) => b.matchScore - a.matchScore);
         break;
-      case 'salary':
+      case "salary":
         result.sort((a, b) => b.salary.max - a.salary.max);
         break;
-      case 'date':
+      case "date":
         result.sort((a, b) => b.postedDate.getTime() - a.postedDate.getTime());
         break;
-      case 'experience':
+      case "experience":
         result.sort((a, b) => a.experience - b.experience);
         break;
     }
@@ -179,13 +209,16 @@ export default function JobsPage() {
     if (filters.jobTypes.length > 0) count++;
     if (filters.experience[0] > 0 || filters.experience[1] < 10) count++;
     if (filters.salary[0] > 0 || filters.salary[1] < 300000) count++;
-    if (filters.postedDate !== 'all') count++;
+    if (filters.postedDate !== "all") count++;
     return count;
   }, [filters]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  }, []);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearch(e.target.value);
+    },
+    []
+  );
 
   return (
     <Layout>
@@ -196,7 +229,9 @@ export default function JobsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-10"
           >
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Discover Your Next Role</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Discover Your Next Role
+            </h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
               Browse {jobs.length}+ opportunities matched to your profile
             </p>
@@ -220,7 +255,7 @@ export default function JobsPage() {
                 />
                 {search && (
                   <button
-                    onClick={() => setSearch('')}
+                    onClick={() => setSearch("")}
                     className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
                   >
                     <X className="w-4 h-4" />
@@ -243,17 +278,17 @@ export default function JobsPage() {
 
                 <div className="hidden md:flex border border-border rounded-xl overflow-hidden">
                   <Button
-                    variant={view === 'grid' ? 'default' : 'ghost'}
+                    variant={view === "grid" ? "default" : "ghost"}
                     size="icon"
-                    onClick={() => setView('grid')}
+                    onClick={() => setView("grid")}
                     className="rounded-none"
                   >
                     <LayoutGrid className="w-4 h-4" />
                   </Button>
                   <Button
-                    variant={view === 'list' ? 'default' : 'ghost'}
+                    variant={view === "list" ? "default" : "ghost"}
                     size="icon"
-                    onClick={() => setView('list')}
+                    onClick={() => setView("list")}
                     className="rounded-none"
                   >
                     <List className="w-4 h-4" />
@@ -262,7 +297,10 @@ export default function JobsPage() {
 
                 <Sheet open={showFilters} onOpenChange={setShowFilters}>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="md:hidden rounded-xl relative">
+                    <Button
+                      variant="outline"
+                      className="md:hidden rounded-xl relative"
+                    >
                       <SlidersHorizontal className="w-4 h-4 mr-2" />
                       Filters
                       {activeFilterCount > 0 && (
@@ -272,7 +310,10 @@ export default function JobsPage() {
                       )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-full sm:w-[400px] overflow-y-auto">
+                  <SheetContent
+                    side="left"
+                    className="w-full sm:w-[400px] overflow-y-auto"
+                  >
                     <JobFilters
                       filters={filters}
                       onFilterChange={setFilters}
@@ -286,18 +327,24 @@ export default function JobsPage() {
 
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-medium text-foreground">{filteredJobs.length}</span> jobs
+                Showing{" "}
+                <span className="font-medium text-foreground">
+                  {filteredJobs.length}
+                </span>{" "}
+                jobs
               </p>
               {activeFilterCount > 0 && (
                 <button
-                  onClick={() => setFilters({
-                    locations: [],
-                    experience: [0, 10],
-                    salary: [0, 300000],
-                    skills: [],
-                    jobTypes: [],
-                    postedDate: 'all'
-                  })}
+                  onClick={() =>
+                    setFilters({
+                      locations: [],
+                      experience: [0, 10],
+                      salary: [0, 300000],
+                      skills: [],
+                      jobTypes: [],
+                      postedDate: "all",
+                    })
+                  }
                   className="text-sm text-primary hover:underline"
                 >
                   Clear filters ({activeFilterCount})
@@ -338,7 +385,9 @@ export default function JobsPage() {
               {isLoading ? (
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  <span className="ml-3 text-muted-foreground">Loading jobs...</span>
+                  <span className="ml-3 text-muted-foreground">
+                    Loading jobs...
+                  </span>
                 </div>
               ) : (
                 <AnimatePresence mode="wait">
@@ -351,21 +400,26 @@ export default function JobsPage() {
                       className="text-center py-16"
                     >
                       <Briefcase className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
+                      <h3 className="text-xl font-semibold mb-2">
+                        No jobs found
+                      </h3>
                       <p className="text-muted-foreground mb-4">
                         Try adjusting your search or filters
                       </p>
-                      <Button variant="outline" onClick={() => {
-                        setSearch('');
-                        setFilters({
-                          locations: [],
-                          experience: [0, 10],
-                          salary: [0, 300000],
-                          skills: [],
-                          jobTypes: [],
-                          postedDate: 'all'
-                        });
-                      }}>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSearch("");
+                          setFilters({
+                            locations: [],
+                            experience: [0, 10],
+                            salary: [0, 300000],
+                            skills: [],
+                            jobTypes: [],
+                            postedDate: "all",
+                          });
+                        }}
+                      >
                         Clear all
                       </Button>
                     </motion.div>
@@ -376,13 +430,18 @@ export default function JobsPage() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       className={
-                        view === 'grid'
-                          ? 'grid sm:grid-cols-2 xl:grid-cols-3 gap-5'
-                          : 'space-y-4'
+                        view === "grid"
+                          ? "grid sm:grid-cols-2 xl:grid-cols-3 gap-5"
+                          : "space-y-4"
                       }
                     >
                       {filteredJobs.map((job, index) => (
-                        <JobCard key={job.id} job={job} view={view} index={index} />
+                        <JobCard
+                          key={job.id}
+                          job={job}
+                          view={view}
+                          index={index}
+                        />
                       ))}
                     </motion.div>
                   )}
