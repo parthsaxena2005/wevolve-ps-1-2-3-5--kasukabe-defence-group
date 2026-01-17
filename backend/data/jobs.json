@@ -1,0 +1,231 @@
+{
+    "jobs": [
+        {
+            "id": 1,
+            "title": "Senior Python Developer",
+            "company": "TechCorp India",
+            "description": "We are looking for a Senior Python Developer to join our backend team. You will be responsible for designing and implementing scalable APIs and microservices.",
+            "location": "Bangalore",
+            "is_remote": false,
+            "salary_min": 1500000,
+            "salary_max": 2500000,
+            "min_experience_years": 4,
+            "max_experience_years": 8,
+            "required_skills": [
+                "Python",
+                "FastAPI",
+                "PostgreSQL",
+                "Docker",
+                "AWS"
+            ],
+            "nice_to_have_skills": [
+                "Kubernetes",
+                "Redis",
+                "GraphQL"
+            ]
+        },
+        {
+            "id": 2,
+            "title": "Full Stack Developer",
+            "company": "StartupXYZ",
+            "description": "Join our fast-paced startup to build innovative products. You'll work on both frontend and backend using modern technologies.",
+            "location": "Remote",
+            "is_remote": true,
+            "salary_min": 1200000,
+            "salary_max": 1800000,
+            "min_experience_years": 2,
+            "max_experience_years": 5,
+            "required_skills": [
+                "React",
+                "Node.js",
+                "MongoDB",
+                "TypeScript"
+            ],
+            "nice_to_have_skills": [
+                "Next.js",
+                "GraphQL",
+                "AWS"
+            ]
+        },
+        {
+            "id": 3,
+            "title": "Data Engineer",
+            "company": "Analytics Pro",
+            "description": "Build and maintain data pipelines that process millions of records daily. Work with cutting-edge big data technologies.",
+            "location": "Hyderabad",
+            "is_remote": false,
+            "salary_min": 1800000,
+            "salary_max": 2800000,
+            "min_experience_years": 3,
+            "max_experience_years": 7,
+            "required_skills": [
+                "Python",
+                "Spark",
+                "SQL",
+                "Airflow",
+                "AWS"
+            ],
+            "nice_to_have_skills": [
+                "Kafka",
+                "dbt",
+                "Snowflake"
+            ]
+        },
+        {
+            "id": 4,
+            "title": "Frontend Developer",
+            "company": "DesignFirst",
+            "description": "Create beautiful, responsive user interfaces for our SaaS platform. Focus on performance and accessibility.",
+            "location": "Mumbai",
+            "is_remote": true,
+            "salary_min": 1000000,
+            "salary_max": 1600000,
+            "min_experience_years": 2,
+            "max_experience_years": 5,
+            "required_skills": [
+                "React",
+                "TypeScript",
+                "CSS",
+                "Tailwind"
+            ],
+            "nice_to_have_skills": [
+                "Framer Motion",
+                "Three.js",
+                "Figma"
+            ]
+        },
+        {
+            "id": 5,
+            "title": "DevOps Engineer",
+            "company": "CloudNine Solutions",
+            "description": "Manage our cloud infrastructure and CI/CD pipelines. Ensure 99.99% uptime for our production systems.",
+            "location": "Pune",
+            "is_remote": false,
+            "salary_min": 1600000,
+            "salary_max": 2400000,
+            "min_experience_years": 3,
+            "max_experience_years": 6,
+            "required_skills": [
+                "AWS",
+                "Docker",
+                "Kubernetes",
+                "Terraform",
+                "Jenkins"
+            ],
+            "nice_to_have_skills": [
+                "Ansible",
+                "Prometheus",
+                "Grafana"
+            ]
+        }
+    ],
+    "skills_taxonomy": [
+        {
+            "name": "Python",
+            "category": "Programming",
+            "difficulty_level": 2,
+            "prerequisites": []
+        },
+        {
+            "name": "FastAPI",
+            "category": "Framework",
+            "difficulty_level": 3,
+            "prerequisites": [
+                "Python"
+            ]
+        },
+        {
+            "name": "React",
+            "category": "Framework",
+            "difficulty_level": 3,
+            "prerequisites": [
+                "JavaScript"
+            ]
+        },
+        {
+            "name": "JavaScript",
+            "category": "Programming",
+            "difficulty_level": 2,
+            "prerequisites": []
+        },
+        {
+            "name": "TypeScript",
+            "category": "Programming",
+            "difficulty_level": 3,
+            "prerequisites": [
+                "JavaScript"
+            ]
+        },
+        {
+            "name": "PostgreSQL",
+            "category": "Database",
+            "difficulty_level": 3,
+            "prerequisites": [
+                "SQL"
+            ]
+        },
+        {
+            "name": "SQL",
+            "category": "Database",
+            "difficulty_level": 2,
+            "prerequisites": []
+        },
+        {
+            "name": "MongoDB",
+            "category": "Database",
+            "difficulty_level": 2,
+            "prerequisites": []
+        },
+        {
+            "name": "Docker",
+            "category": "DevOps",
+            "difficulty_level": 3,
+            "prerequisites": []
+        },
+        {
+            "name": "Kubernetes",
+            "category": "DevOps",
+            "difficulty_level": 4,
+            "prerequisites": [
+                "Docker"
+            ]
+        },
+        {
+            "name": "AWS",
+            "category": "Cloud",
+            "difficulty_level": 4,
+            "prerequisites": []
+        },
+        {
+            "name": "Node.js",
+            "category": "Runtime",
+            "difficulty_level": 3,
+            "prerequisites": [
+                "JavaScript"
+            ]
+        },
+        {
+            "name": "Spark",
+            "category": "Big Data",
+            "difficulty_level": 4,
+            "prerequisites": [
+                "Python",
+                "SQL"
+            ]
+        },
+        {
+            "name": "Airflow",
+            "category": "Orchestration",
+            "difficulty_level": 3,
+            "prerequisites": [
+                "Python"
+            ]
+        },
+        {
+            "name": "Terraform",
+            "category": "Infrastructure",
+            "difficulty_level": 4,
+            "prerequisites": []
+        }
+    ]
+}
