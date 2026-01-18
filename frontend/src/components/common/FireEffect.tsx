@@ -11,8 +11,8 @@ interface FireEffectProps {
 }
 
 /**
- * A component that wraps content with a fire/ember glow effect
- * Used to highlight fields with low confidence scores
+ * Ember border effect for low-confidence fields
+ * Simple animated glowing border that pulses with ember colors
  */
 export default function FireEffect({
     children,
@@ -25,72 +25,53 @@ export default function FireEffect({
     }
 
     const intensityConfig = {
-        low: {
-            glowSize: '10px',
-            pulseOpacity: [0.3, 0.5, 0.3],
-            duration: 2,
-        },
-        medium: {
-            glowSize: '15px',
-            pulseOpacity: [0.4, 0.7, 0.4],
-            duration: 1.5,
-        },
-        high: {
-            glowSize: '20px',
-            pulseOpacity: [0.5, 0.9, 0.5],
-            duration: 1,
-        },
+        low: { glowSize: 4, duration: 3 },
+        medium: { glowSize: 6, duration: 2.5 },
+        high: { glowSize: 8, duration: 2 },
     };
 
     const config = intensityConfig[intensity];
 
     return (
-        <motion.div
-            className={`relative ${className}`}
-            animate={{
-                boxShadow: [
-                    `0 0 ${config.glowSize} rgba(255, 100, 50, ${config.pulseOpacity[0]}), 0 0 ${parseInt(config.glowSize) * 2}px rgba(255, 60, 20, ${config.pulseOpacity[0] * 0.5}), inset 0 0 ${parseInt(config.glowSize) / 2}px rgba(255, 150, 50, ${config.pulseOpacity[0] * 0.3})`,
-                    `0 0 ${parseInt(config.glowSize) * 1.5}px rgba(255, 120, 50, ${config.pulseOpacity[1]}), 0 0 ${parseInt(config.glowSize) * 3}px rgba(255, 80, 30, ${config.pulseOpacity[1] * 0.5}), inset 0 0 ${parseInt(config.glowSize)}px rgba(255, 180, 80, ${config.pulseOpacity[1] * 0.3})`,
-                    `0 0 ${config.glowSize} rgba(255, 100, 50, ${config.pulseOpacity[2]}), 0 0 ${parseInt(config.glowSize) * 2}px rgba(255, 60, 20, ${config.pulseOpacity[2] * 0.5}), inset 0 0 ${parseInt(config.glowSize) / 2}px rgba(255, 150, 50, ${config.pulseOpacity[2] * 0.3})`,
-                ],
-            }}
-            transition={{
-                duration: config.duration,
-                repeat: Infinity,
-                ease: 'easeInOut',
-            }}
-        >
-            {/* Ember particles */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
-                {[...Array(6)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute w-1 h-1 rounded-full"
-                        style={{
-                            background: `radial-gradient(circle, rgba(255,${150 + i * 20},50,1) 0%, rgba(255,${100 + i * 15},30,0.6) 50%, transparent 100%)`,
-                            left: `${15 + i * 14}%`,
-                            bottom: '-2px',
-                        }}
-                        animate={{
-                            y: [-2, -20 - Math.random() * 15, -35],
-                            x: [0, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 30],
-                            opacity: [0, 1, 0],
-                            scale: [0.5, 1, 0.3],
-                        }}
-                        transition={{
-                            duration: 1.5 + Math.random() * 0.5,
-                            repeat: Infinity,
-                            delay: i * 0.2,
-                            ease: 'easeOut',
-                        }}
-                    />
-                ))}
-            </div>
+        <div className={`relative ${className}`}>
+            {/* Animated ember border glow */}
+            <motion.div
+                className="absolute -inset-[1px] rounded-xl pointer-events-none"
+                style={{
+                    background: 'linear-gradient(90deg, #ff6b35, #f7931e, #ff4444, #ff6b35)',
+                    backgroundSize: '300% 100%',
+                }}
+                animate={{
+                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{
+                    duration: config.duration,
+                    repeat: Infinity,
+                    ease: 'linear',
+                }}
+            />
 
-            {/* Content */}
-            <div className="relative z-10">
+            {/* Pulsing outer glow */}
+            <motion.div
+                className="absolute rounded-xl pointer-events-none"
+                style={{
+                    inset: -config.glowSize,
+                    boxShadow: `0 0 ${config.glowSize * 2}px rgba(255, 107, 53, 0.5), 0 0 ${config.glowSize * 4}px rgba(247, 147, 30, 0.3)`,
+                }}
+                animate={{
+                    opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                    duration: config.duration,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                }}
+            />
+
+            {/* Content container - masks out the center of the gradient */}
+            <div className="relative z-10 rounded-xl bg-card">
                 {children}
             </div>
-        </motion.div>
+        </div>
     );
 }

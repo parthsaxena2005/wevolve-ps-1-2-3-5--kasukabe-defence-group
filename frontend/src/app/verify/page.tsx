@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { FileText, Plus, Trash2, CheckCircle2 } from 'lucide-react';
@@ -83,6 +83,16 @@ export default function VerifyPage() {
   const [formData, setFormData] = useState<ParsedResumeFrontend>(parsedResume || sampleParsedResume);
   const [newSkill, setNewSkill] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (resumeFile && resumeFile.type === 'application/pdf') {
+      const url = URL.createObjectURL(resumeFile);
+      setFileUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setFileUrl(null);
+  }, [resumeFile]);
 
   useEffect(() => {
     if (!parsedResume) {
@@ -156,7 +166,7 @@ export default function VerifyPage() {
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* PDF Preview Placeholder */}
+            {/* Document Preview */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -166,16 +176,54 @@ export default function VerifyPage() {
                 <FileText className="w-5 h-5 text-primary" />
                 <h2 className="font-semibold">Original Document</h2>
               </div>
-              <div className="bg-muted/50 rounded-xl h-[calc(100%-40px)] flex items-center justify-center">
-                <div className="text-center p-8">
-                  <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    {resumeFile ? resumeFile.name : 'Sample Resume Preview'}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    PDF viewer would display here
-                  </p>
-                </div>
+              <div className="bg-muted/50 rounded-xl h-[calc(100%-40px)] overflow-hidden">
+                {resumeFile ? (
+                  resumeFile.type === 'application/pdf' ? (
+                    // PDF Preview using object element
+                    <object
+                      data={fileUrl || ''}
+                      type="application/pdf"
+                      className="w-full h-full rounded-xl"
+                    >
+                      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                        <FileText className="w-16 h-16 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground mb-2">Unable to display PDF</p>
+                        <a
+                          href={fileUrl || ''}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          Open in new tab
+                        </a>
+                      </div>
+                    </object>
+                  ) : (
+                    // DOCX Preview - can't be displayed directly in browser
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                      <div className="w-20 h-20 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4">
+                        <FileText className="w-10 h-10 text-blue-500" />
+                      </div>
+                      <p className="font-medium text-lg mb-1">{resumeFile.name}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {(resumeFile.size / 1024 / 1024).toFixed(2)} MB • Word Document
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-4 max-w-xs">
+                        Word document preview is not available in browser.
+                        The document has been parsed successfully.
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  // No file uploaded - show sample placeholder
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <FileText className="w-16 h-16 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Sample Resume Preview</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Upload a resume to see the preview
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
 
