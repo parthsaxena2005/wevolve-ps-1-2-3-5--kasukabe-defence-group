@@ -1,12 +1,14 @@
 {
-  "name": "frontend-next",
-  "version": "0.1.0",
+  "name": "wevolve-frontend",
+  "version": "1.0.0",
+  "description": "AI-Powered Career Acceleration Ecosystem",
   "private": true,
+  "author": "Kasukabe Defence Group",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
